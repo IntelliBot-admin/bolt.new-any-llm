@@ -2,8 +2,8 @@ name: Sync Fork
 
 on:
   schedule:
-    - cron: '0 0 * * *' # Run daily at midnight UTC
-  workflow_dispatch: # Allows manual trigger
+    - cron: '0 0 * * *'
+  workflow_dispatch:
 
 jobs:
   sync:
@@ -13,11 +13,15 @@ jobs:
       - name: Checkout Fork
         uses: actions/checkout@v3
 
-      - name: Sync Fork
-        uses: tgymnich/fork-sync@v1.8
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          owner: coleam00
-          base: main
-          head: main
-          repo: bolt.new-any-llm
+      - name: Add Upstream Remote
+        run: git remote add upstream https://github.com/coleam00/bolt.new-any-llm.git
+
+      - name: Fetch and Merge Updates
+        run: |
+          git fetch upstream
+          git checkout main
+          # Always accept upstream changes for commit.json
+          git checkout upstream/main app/commit.json
+          # Merge upstream changes with strategy to accept incoming
+          git merge -X theirs upstream/main
+          git push origin main
