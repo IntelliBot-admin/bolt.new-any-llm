@@ -27,8 +27,12 @@ jobs:
         run: |
           git fetch upstream
           git checkout main
-          # Always accept upstream changes for commit.json
-          git checkout upstream/main app/commit.json
-          # Allow merging unrelated histories and force theirs strategy
+          # Reset commit.json to match upstream
+          git reset -- app/commit.json
+          git checkout upstream/main -- app/commit.json
+          # Add and commit the changes to commit.json
+          git add app/commit.json
+          git commit -m "Update commit.json from upstream"
+          # Now merge the rest
           git merge --allow-unrelated-histories -X theirs upstream/main
           git push origin main
