@@ -12,6 +12,8 @@ jobs:
     steps:
       - name: Checkout Fork
         uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
 
       - name: Add Upstream Remote
         run: git remote add upstream https://github.com/coleam00/bolt.new-any-llm.git
@@ -22,6 +24,6 @@ jobs:
           git checkout main
           # Always accept upstream changes for commit.json
           git checkout upstream/main app/commit.json
-          # Merge upstream changes with strategy to accept incoming
-          git merge -X theirs upstream/main
+          # Allow merging unrelated histories and force theirs strategy
+          git merge --allow-unrelated-histories -X theirs upstream/main
           git push origin main
