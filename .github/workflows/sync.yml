@@ -8,12 +8,16 @@ on:
 jobs:
   sync:
     runs-on: ubuntu-latest
+    # Add permissions block to allow workflow modifications
+    permissions:
+      contents: write
+      actions: write  # Add this permission explicitly
 
     steps:
       - name: Checkout Fork
         uses: actions/checkout@v3
         with:
-          token: ${{ secrets.WORKFLOW_TOKEN }}
+          token: ${{ secrets.WORKFLOW_TOKEN }}  # Make sure this is a PAT with workflow permissions
           fetch-depth: 0
 
       - name: Configure Git
@@ -28,19 +32,16 @@ jobs:
         run: |
           git fetch upstream
           git checkout main
-          # Reset commit.json to match upstream
           git reset -- app/commit.json
           git checkout upstream/main -- app/commit.json
-          # Add and commit the changes to commit.json
           git add app/commit.json
           git commit -m "Update commit.json from upstream"
-          # Now merge the rest
           git merge --allow-unrelated-histories -X theirs upstream/main
           git push origin main
 
   deploy:
     needs: sync
-    environment: prod
+    environment: prod  # This ensures the job uses the prod environment and its secrets
     runs-on: ubuntu-latest
 
     steps:
@@ -57,6 +58,9 @@ jobs:
 
       - name: Build Project
         run: npm run build
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
 
       - name: Deploy to Cloudflare Pages
         uses: cloudflare/pages-action@v1.5.0
@@ -66,8 +70,5 @@ jobs:
           projectName: bolt
           directory: build/client
           secrets: |
-            OPENAI_API_KEY
-            ANTHROPIC_API_KEY
-        env:
-          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+            OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}
+            ANTHROPIC_API_KEY=${{ secrets.ANTHROPIC_API_KEY }}
