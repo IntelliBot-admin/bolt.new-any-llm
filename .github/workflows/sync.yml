@@ -33,12 +33,9 @@ jobs:
         run: |
           git fetch upstream
           git checkout main
-          git reset -- app/commit.json
-          git checkout upstream/main -- app/commit.json
-          git add app/commit.json
-          git commit -m "Update commit.json from upstream"
           git merge --allow-unrelated-histories -X theirs upstream/main
           git push origin main
+
 
   deploy:
     needs: sync
